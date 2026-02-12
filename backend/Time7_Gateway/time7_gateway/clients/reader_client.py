@@ -1,10 +1,12 @@
 import json
 import os
 from datetime import datetime, timezone
+from models.schemas import FullScanEvent #---NEW
 
 import httpx
 
 from time7_gateway.services.database import upsert_latest_tag
+from time7_gateway.services.database import upsert_full_tag #---NEW
 
 
 class ImpinjReaderClient:
@@ -43,6 +45,21 @@ async def run_reader_stream(app):
 
             tie = ev.get("tagInventoryEvent", {})
             tag_id = tie.get("epcHex")
+
+            #--------NEWCODE----------
+            t_a_r = tie.get("tagAuthenticationResponse", {})
+
+            f_s_e = FullScanEvent(
+                epc=tie.get("epc"), 
+                messageHex=t_a_r.get("messageHex"), 
+                responseHex=t_a_r.get("responseHex"), 
+                tidHex=t_a_r.get("tidHex"),
+                tid=tie.get("tid"))
+
+            
+
+            #-------ENDOFCODE---------
+
             if not tag_id:
                 continue
 
@@ -54,7 +71,8 @@ async def run_reader_stream(app):
             if cache.get(tag_id) is None:
                 auth, info = ias_lookup(tag_id)
                 cache.set(tag_id, auth, info)
-                upsert_latest_tag(tag_id=tag_id, seen_at=seen_at, auth=auth, info=info)
+                upsert_full_tag(f_s_e) #--NEW
+               # upsert_latest_tag(tag_id=tag_id, seen_at=seen_at, auth=auth, info=info)
 
     finally:
         await client.aclose()
