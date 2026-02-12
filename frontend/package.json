@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "expo start",
+    "start": "mkdir -p .tmp && TMPDIR=\"$PWD/.tmp\" npx expo start",
+    "start:clean": "mkdir -p .tmp && TMPDIR=\"$PWD/.tmp\" npx expo start -c",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
