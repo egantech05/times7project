@@ -54,11 +54,11 @@ def create_app() -> FastAPI:
     def health():
         return {"ok": True}
 
-    
+    # remove comment below to use reader_streamer simulator    
     @app.on_event("startup")
     async def _start_reader_stream():
-        if os.getenv("READER_AUTOSTART", "false").lower() == "true":
-            asyncio.create_task(run_reader_stream(app))
+        asyncio.create_task(run_reader_stream(app))
+   
 
     return app
 
