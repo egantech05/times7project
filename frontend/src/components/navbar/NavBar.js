@@ -6,13 +6,13 @@ export default function NavBar({navigationRef,active}){
 
 
     const btnStyle = (name) => (active === name ? styles.navButtonSelected : styles.navButton);
-    const iconColor = (name) => (active === name ? "white" : "#2a2a2aff");
+    const iconColor = (name) => (active === name ? "#F17621" : "#2a2a2aff");
 
 
     return(
         <View style={styles.container}>
             <Pressable style={btnStyle("Dashboard")} onPress={() => navigationRef.navigate("Dashboard")}>
-                <Ionicons name="home-outline" size={24} color={iconColor("Dashboard")} />
+                <Ionicons name="radio-outline" size={24} color={iconColor("Dashboard")} />
             </Pressable>
 
             <Pressable style={btnStyle("SearchPage")} onPress={() => navigationRef.navigate("SearchPage")}>
