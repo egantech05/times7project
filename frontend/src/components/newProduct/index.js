@@ -1,16 +1,21 @@
 import { StyleSheet, Text, View, Pressable, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { todayDate } from "../../../utils/formatDateTime";
+import SubmitButton from "../submitButton";
+
 
 
 
 
 
 export function NewProduct({ item, onClose }) {
+  const [date, setDate] = useState(() => todayDate());
+
     return (
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.header}>
-             <Pressable onPress={onClose} style={styles.closebtn}><Ionicons name="create-outline" size={24} color="grey" /></Pressable>
               <Pressable onPress={onClose} style={styles.closebtn}><Ionicons name="close-outline" size={24} color="grey" /></Pressable>
           </View>
           <View style={styles.imgBox}>
@@ -45,10 +50,19 @@ export function NewProduct({ item, onClose }) {
                 style={[styles.input, styles.rowInput]}
                 placeholder="Date"
                 placeholderTextColor="#9AA0A6"
+                value={date}
+                onChangeText={setDate}
+
               />
           </View>
 
-
+          <SubmitButton
+            label="Register"
+            color="#2a2a2aff"
+            onPress={() => {
+              // TODO: submit/register here
+            }}
+          />
          
         </View>
       </View>
@@ -68,7 +82,7 @@ export function NewProduct({ item, onClose }) {
     header:{
         flexDirection:"row",
         alignItems:"center",
-        justifyContent: "space-between"
+        justifyContent: "flex-end"
     },
 
     card: {
