@@ -57,7 +57,7 @@ def create_app() -> FastAPI:
     
     @app.on_event("startup")
     async def _start_reader_stream():
-        if os.getenv("READER_AUTOSTART", "true").lower() == "true":
+        if os.getenv("READER_AUTOSTART", "false").lower() == "true":
             asyncio.create_task(run_reader_stream(app))
 
     return app
