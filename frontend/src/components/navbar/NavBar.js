@@ -6,7 +6,7 @@ export default function NavBar({navigationRef,active}){
 
 
     const btnStyle = (name) => (active === name ? styles.navButtonSelected : styles.navButton);
-    const iconColor = (name) => (active === name ? "#FE751A" : "#2a2a2aff");
+    const iconColor = (name) => (active === name ? "white" : "#2a2a2aff");
 
 
     return(
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     },
 
     navButtonSelected:{
-        backgroundColor: "#2a2a2aff",
+        backgroundColor: "#FE751A",
         borderRadius: 24,
         padding: 8,
         marginHorizontal: 8,

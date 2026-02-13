@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-export default function SubmitButton({ label = "Submit", color = "#2a2a2aff", onPress, disabled = false }) {
+export default function SubmitButton({ label = "Submit", color = "#FE751A", onPress, disabled = false }) {
   return (
     <Pressable
       onPress={onPress}

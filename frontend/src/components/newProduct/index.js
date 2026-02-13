@@ -144,7 +144,6 @@ const handleRegister = async () => {
 
           <SubmitButton
           label="Register"
-          color="#2a2a2aff"
           onPress={handleRegister}
           disabled={submitting}
           />
