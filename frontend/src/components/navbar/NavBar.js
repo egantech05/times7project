@@ -6,7 +6,7 @@ export default function NavBar({navigationRef,active}){
 
 
     const btnStyle = (name) => (active === name ? styles.navButtonSelected : styles.navButton);
-    const iconColor = (name) => (active === name ? "#F17621" : "#2a2a2aff");
+    const iconColor = (name) => (active === name ? "#FE751A" : "#2a2a2aff");
 
 
     return(

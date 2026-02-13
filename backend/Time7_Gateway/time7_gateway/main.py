@@ -35,7 +35,7 @@ def create_app() -> FastAPI:
     )
 
     # Shared in-memory state
-    app.state.active_tags = ActiveTags(remove_grace_seconds=2.0)
+    app.state.active_tags = ActiveTags(remove_grace_seconds=3.0)
     app.state.tag_info_cache = TagInfoCache(cache_ttl_hours=24)
 
     # IAS switch (mock vs real)
@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
     def health():
         return {"ok": True}
 
-    # remove comment below to use reader_streamer simulator    
+ 
     @app.on_event("startup")
     async def _start_reader_stream():
         asyncio.create_task(run_reader_stream(app))

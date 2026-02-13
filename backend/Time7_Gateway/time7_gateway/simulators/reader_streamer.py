@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 
-DATA_FILE = Path(__file__).with_name("t7datastream")
+DATA_FILE = Path(__file__).with_name("t7datastream.ndjson")
 
 
 async def ndjson_line_stream(loop: bool = True, rate_hz: float = 20.0) -> AsyncIterator[bytes]:

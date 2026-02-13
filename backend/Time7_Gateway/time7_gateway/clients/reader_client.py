@@ -27,7 +27,7 @@ class ImpinjReaderClient:
 
 async def run_reader_stream(app):
     reader_base_url = os.getenv("READER_BASE_URL", "").strip()
-    reader_user = os.getenv("READER_USER", "root").strip()
+    reader_user = os.getenv("READER_USER", "").strip()
     reader_password = os.getenv("READER_PASSWORD", "").strip()
 
     client = ImpinjReaderClient(reader_base_url, reader_user, reader_password)
@@ -38,23 +38,37 @@ async def run_reader_stream(app):
 
     try:
         async for ev in client.stream_events():
+
+            
+
             if ev.get("eventType") != "tagInventory":
                 continue
-
             tie = ev.get("tagInventoryEvent", {})
-            tag_id = tie.get("epcHex")
+            tag_id = tie.get("tidHex")
+            #epc = tie.get("epc")
+            #epcHex = tie.get("epcHex")
+
+            #epc = tie.get("epc")          
+            #epc_hex = tie.get("epcHex")   
+
             if not tag_id:
                 continue
 
             seen_at = datetime.now(timezone.utc)
 
+            #tar = tie.get("tagAuthenticationResponse") or {}
+            #message_hex = tar.get("messageHex")
+            #response_hex = tar.get("responseHex")
+            #tar_tid_hex = tar.get("tidHex")
+
+
             active_tags.sync_seen([tag_id], seen_at=seen_at)
 
             # if its new tag
             if cache.get(tag_id) is None:
-                auth, info = ias_lookup(tag_id)
-                cache.set(tag_id, auth, info)
-                upsert_latest_tag(tag_id=tag_id, seen_at=seen_at, auth=auth, info=info)
+                auth, info = ias_lookup(tag_id) ##send IAS parameter here
+                cache.set(tag_id, auth, info) ## IAS results
+                upsert_latest_tag(tag_id=tag_id, seen_at=seen_at, auth=auth, info=info) #sending to database
 
     finally:
         await client.aclose()
