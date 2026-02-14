@@ -92,3 +92,20 @@ t7env/
 venv/
 __pycache__/
 *.pyc
+
+# IDE
+.idea/
+
+# env/swap files
+*.swp
+.env.local
+
+# temp
+frontend/.tmp/
+.tmp/
+metro-cache/
+
+# venv
+venv/
+.venv/
+t7env/
