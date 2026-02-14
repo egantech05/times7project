@@ -1,11 +1,14 @@
-import { ActivityIndicator, StyleSheet, Text, View, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ActivityIndicator, StyleSheet, Text, View} from "react-native";
+import SearchBar from "../../components/searchBar";
+import { SearchResults } from "../../components/searchResults";
 
 export default function SearchPage(){
 
     return(
         <View style={styles.container}>
-            X
+            <SearchBar/>
+            <View><Text style={styles.notFound}>Item not found</Text></View>  
+            <SearchResults/>
         
         </View>   
     );
@@ -18,4 +21,11 @@ const styles = StyleSheet.create({
         padding:16,
         gap:8,
       },
+
+      notFound:{
+        color: "grey",
+        alignSelf: "center",
+        marginVertical:16,
+      },
+    
 });
