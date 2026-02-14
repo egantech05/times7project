@@ -3,7 +3,7 @@
 frontend/.tmp/
 
 
-.zip
+
 # ignore Expo/Metro temp
 frontend/.tmp/
 .tmp/
