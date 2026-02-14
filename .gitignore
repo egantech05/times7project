@@ -85,3 +85,10 @@ frontend/.tmp/
 # macOS junk
 .DS_Store
 **/.DS_Store
+
+# python venv
+t7env/
+.venv/
+venv/
+__pycache__/
+*.pyc
