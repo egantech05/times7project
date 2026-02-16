@@ -19,3 +19,8 @@ venv/
 
 # Uvicorn temp
 *.pid
+
+# Expo/Metro caches
+frontend/.tmp/
+**/metro-cache/
+**/.metro-cache/

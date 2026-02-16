@@ -1,14 +1,17 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import AuthStatus from "../authStatus";
 
 import { formatDateTime } from "../../../utils/formatDateTime";
 
 
-export default function ItemCard({ auth, date, info, id }) {
+export default function ItemCard({ auth, date, info, id, onPress, registered }) {
     return (
-      <View style={styles.container}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.container, registered && styles.registered, pressed && styles.pressed]}
+      >
         <View style={styles.top}>
-          <Text style={styles.date}>{formatDateTime(date)}</Text>
+          <Text style={styles.date}>{formatDateTime(date).replace(", ", " ")}</Text>
             <AuthStatus auth={auth} />
         </View>
         <View style={styles.center}>
@@ -17,7 +20,7 @@ export default function ItemCard({ auth, date, info, id }) {
         <View style={styles.bottom}>
           <Text style={styles.tag}>{id}</Text>
         </View>
-      </View>
+      </Pressable>
     );
   }
 
@@ -25,7 +28,7 @@ const styles = StyleSheet.create({
   container: {
    
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: "#D9D9D9",
     gap: 8,
     borderRadius: 16,
     justifyContent: "space-between",
@@ -33,6 +36,10 @@ const styles = StyleSheet.create({
     width:160,
     height:200,
   
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
 
   top:{
@@ -73,4 +80,9 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",      
     maxWidth: "100%",
   },
+
+  registered: {
+    backgroundColor: "white",
+  },
+  
 });

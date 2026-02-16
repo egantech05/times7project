@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 export default function AuthStatus({ auth }) {
   const bg = auth ? "#55E299" : "#E25555";
-  const label = auth ? "AUTHENTIC" : "INVALID";
+  const label = auth ? "VALID" : "INVALID";
 
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>

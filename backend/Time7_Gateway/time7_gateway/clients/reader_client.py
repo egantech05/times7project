@@ -55,7 +55,7 @@ def handle_invalid_tag(
 
 async def run_reader_stream(app):
     reader_base_url = os.getenv("READER_BASE_URL", "").strip()
-    reader_user = os.getenv("READER_USER", "root").strip()
+    reader_user = os.getenv("READER_USER", "").strip()
     reader_password = os.getenv("READER_PASSWORD", "").strip()
 
     client = ImpinjReaderClient(reader_base_url, reader_user, reader_password)

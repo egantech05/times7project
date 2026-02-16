@@ -9,7 +9,7 @@ export default function Logs({ auth, date, info, tagId }) {
   return (
     <View style={styles.container}>
       <View style={styles.colWrap}>
-        <Text style={styles.date}>{formatDateTime(date)}</Text>
+        <Text style={styles.date}>{formatDateTime(date).replace(", ", " ")}</Text>
         <Text style={styles.info}>{info}</Text>
         <Text style={styles.tag}>{tagId}</Text>
       </View>

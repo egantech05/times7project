@@ -12,7 +12,7 @@ export default function NavBar({navigationRef,active}){
     return(
         <View style={styles.container}>
             <Pressable style={btnStyle("Dashboard")} onPress={() => navigationRef.navigate("Dashboard")}>
-                <Ionicons name="home-outline" size={24} color={iconColor("Dashboard")} />
+                <Ionicons name="radio-outline" size={24} color={iconColor("Dashboard")} />
             </Pressable>
 
             <Pressable style={btnStyle("SearchPage")} onPress={() => navigationRef.navigate("SearchPage")}>
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     },
 
     navButtonSelected:{
-        backgroundColor: "#2a2a2aff",
+        backgroundColor: "#FE751A",
         borderRadius: 24,
         padding: 8,
         marginHorizontal: 8,
