@@ -38,7 +38,7 @@ def handle_invalid_tag(
 
     active_tags.sync_seen(
         [tidHex],
-        tidHex={tidHex: epcHex},
+        epcHex={tidHex: epcHex},
         seen_at=seen_at
     )
 
@@ -98,7 +98,7 @@ async def run_reader_stream(app):
                     seen_at=seen_at,
                     active_tags=active_tags,
                     cache=cache,
-                    info_message="missing 'tagAuthenticationResponse'.")
+                    info_message="tagAuthResponse")
                 continue 
 
             # Save tagAuthenticationResponse variables:
@@ -119,7 +119,7 @@ async def run_reader_stream(app):
                     seen_at=seen_at,
                     active_tags=active_tags,
                     cache=cache,
-                    info_message="'responseHex' not found.")
+                    info_message="missing responseHex")
                 continue
 
             # ----- AUTHENTICATION RESPONSE VALID -----
@@ -133,7 +133,7 @@ async def run_reader_stream(app):
             # Update active live tags
             active_tags.sync_seen(
                 [tidHex],
-                epcHex=epcHex,
+                epcHex={tidHex: epcHex},
                 seen_at=seen_at
             )
             

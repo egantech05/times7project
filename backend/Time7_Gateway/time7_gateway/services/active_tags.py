@@ -36,7 +36,7 @@ class ActiveTags:
 
         # Add new tags, refresh last_seen for existing tags that appear again
         for tidHex in seen_now:
-            epcHex = epcHex
+            epcHex = epcHex.get(tidHex) if epcHex else None
             cur = self._tags.get(tidHex)
             if cur is None:
                 self._tags[tidHex] = ActiveTag(
