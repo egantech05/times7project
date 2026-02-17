@@ -1,4 +1,11 @@
 
+t7env/
+
+# Metro/Expo temp cache
+frontend/.tmp/
+frontend/**/.tmp/
+
+
 # Expo/Metro temp
 frontend/.tmp/
 
@@ -109,3 +116,4 @@ metro-cache/
 venv/
 .venv/
 t7env/
+
