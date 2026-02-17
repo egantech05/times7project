@@ -37,22 +37,18 @@ class TagInfoCache:
             info=info,
             fetched_at=datetime.now(timezone.utc),
         )
-#for debugging
-def snapshot(self) -> dict:
+        
+    # for debugging
+    def snapshot(self) -> dict:
+        items = []
+        for tid_hex, value in self._cache.items():
+            if isinstance(value, (tuple, list)) and len(value) >= 2:
+                auth, info = value[0], value[1]
+            else:
+                auth = getattr(value, "auth", None)
+                info = getattr(value, "info", None)
 
-    items = []
+            items.append({"id": tid_hex, "auth": auth, "info": info})
 
-
-    for tid_hex, value in self._cache.items():
-       
-        if isinstance(value, (tuple, list)) and len(value) >= 2:
-            auth, info = value[0], value[1]
-        else:
-           
-            auth = getattr(value, "auth", None)
-            info = getattr(value, "info", None)
-
-        items.append({"id": tid_hex, "auth": auth, "info": info})
-
-    items.sort(key=lambda x: x.get("id") or "")
-    return {"count": len(items), "items": items}
+        items.sort(key=lambda x: x.get("id") or "")
+        return {"count": len(items), "items": items}
