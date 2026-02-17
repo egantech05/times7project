@@ -7,7 +7,9 @@
     "start:clean": "mkdir -p .tmp && TMPDIR=\"$PWD/.tmp\" npx expo start -c",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest"
+
   },
   "dependencies": {
     "@ionic/react": "^8.7.17",
