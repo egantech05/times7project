@@ -14,6 +14,7 @@ export default function SearchPage() {
   const [error, setError] = useState(null);
 
   const [product, setProduct] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState(null);
 
   const doSearch = useCallback(async (raw) => {
     const q = String(raw ?? "").trim();
@@ -24,6 +25,7 @@ export default function SearchPage() {
       setSearched(false);
       setError(null);
       setProduct(null);
+      setPhotoUrl(null);
       return;
     }
 
@@ -31,6 +33,7 @@ export default function SearchPage() {
     setSearched(true);
     setError(null);
     setProduct(null);
+    setPhotoUrl(null);
 
     try {
       let row = null;
@@ -80,9 +83,27 @@ export default function SearchPage() {
       }
 
       setProduct(row);
+
+      if (row?.tid) {
+        const { data: photos, error: photoError } = await supabase
+          .from("product_photo")
+          .select("photo_url, created_at")
+          .eq("tid", row.tid)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (photoError) {
+          // keep product visible even if image fetch fails
+          console.warn("Photo fetch failed", photoError);
+          setPhotoUrl(null);
+        } else {
+          setPhotoUrl(photos?.[0]?.photo_url ?? null);
+        }
+      }
     } catch (e) {
       setError(e?.message ?? String(e));
       setProduct(null);
+      setPhotoUrl(null);
     } finally {
       setLoading(false);
     }
@@ -108,7 +129,7 @@ export default function SearchPage() {
         ) : null}
       </View>
 
-      <SearchResults product={product} />
+      <SearchResults product={product} photoUrl={photoUrl} />
     </View>
   );
 }

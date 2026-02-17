@@ -24,18 +24,18 @@ def reader_events(request: Request, payload: Any = Body(...)):
     if isinstance(payload, dict) and "tagIds" in payload:
         now = datetime.now(timezone.utc)
 
-        tag_ids = payload.get("tagIds") or []
-        tags_seen = len(tag_ids)
+        tidHex = payload.get("tidHex") or []
+        tags_seen = len(tidHex)
 
-        active_tags.sync_seen(tag_ids, seen_at=now)
+        active_tags.sync_seen(tidHex, seen_at=now)
 
-        for tag_id in tag_ids:
-            tag_id = str(tag_id)
-            if cache.get(tag_id) is None:
-                auth, info = ias_lookup(tag_id)
-                cache.set(tag_id, auth, info)
+        for tidHex in tidHex:
+            tidHex = str(tidHex)
+            if cache.get(tidHex) is None:
+                auth, info = ias_lookup(tidHex)
+                cache.set(tidHex, auth, info)
                 product_info_fetched += 1
-                upsert_latest_tag(tag_id=tag_id, seen_at=now, auth=auth, info=info)
+                upsert_latest_tag(tidHex=tidHex, seen_at=now, auth=auth, info=info)
 
         return {
             "ok": True,

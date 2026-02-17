@@ -37,6 +37,7 @@ def create_app() -> FastAPI:
     # Shared in-memory state
     app.state.active_tags = ActiveTags(remove_grace_seconds=3.0)
     app.state.tag_info_cache = TagInfoCache(cache_ttl_hours=24)
+    app.state.reader_connected = False #for reader status
 
     # IAS switch (mock vs real)
     ias_mode = os.getenv("IAS_MODE", "mock")

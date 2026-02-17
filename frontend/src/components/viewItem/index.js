@@ -32,7 +32,7 @@ export function ViewItem({ item, onClose }) {
       setLoading(true);
       setLoadError(null);
 
-      const tid = String(item.id);
+      const tid = String(item?.tidHex);
 
       const { data: productRow, error: productError } = await supabase
         .from("product_info")
@@ -187,11 +187,11 @@ export function ViewItem({ item, onClose }) {
 
         <View style={styles.infoRow}>
           <Text style={styles.label}>epc</Text>
-          <Text style={styles.valueBold}>{product?.epc ?? item?.info ?? "-"}</Text>
+          <Text style={styles.valueBold}>{product?.epc ?? item?.epcHex ?? "-"}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.label}>tid</Text>
-          <Text style={styles.valueBold}>{product?.tid ?? item?.id ?? "-"}</Text>
+          <Text style={styles.valueBold}>{product?.tid ?? item?.tidHex ?? "-"}</Text>
         </View>
 
         {loading ? (

@@ -30,3 +30,9 @@ function mustGetGatewayUrl() {
     );
     return await res.json();
   }
+
+  export async function fetchReaderStatus() {
+    const base = mustGetGatewayUrl();
+    const res = await mustOk(await fetch(`${base}/api/reader-status`));
+    return await res.json();
+  }

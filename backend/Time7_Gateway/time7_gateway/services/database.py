@@ -2,12 +2,13 @@ from datetime import datetime
 from time7_gateway.clients.supabase_client import get_supabase
 
 
-def upsert_latest_tag(tag_id: str, seen_at: datetime, auth: bool, info: str | None):
+def upsert_latest_tag(tidHex: str, seen_at: datetime, auth: bool, info: str | None, epcHex: str | None):
     sb = get_supabase()
     payload = {
-        "id": tag_id,
-        "date": seen_at.isoformat(),
+        "tid_hex": tidHex,
+        "first_seen": seen_at.isoformat(),
         "auth": auth,
         "info": info,
+        "epc_hex": epcHex,
     }
     sb.table("data").upsert(payload).execute()

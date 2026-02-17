@@ -20,7 +20,7 @@ export default function LogsPage() {
       const { data: rows, error } = await supabase
         .from("data")
         .select("*")
-        .order("date", { ascending: false });
+        .order("first_seen", { ascending: false })
   
       if (error) {
         console.log("Supabase error", error);
@@ -43,7 +43,7 @@ export default function LogsPage() {
         const { data: rows, error } = await supabase
           .from("data")
           .select("*")
-          .order("date", { ascending: false });
+          .order("first_seen", { ascending: false })
   
         if (error) {
           console.log("Supabase error", error);
@@ -83,15 +83,15 @@ export default function LogsPage() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: 8 }}
         >
-          {data.map(item => (
-            <Logs
-              key={item.id}
-              auth={item.auth}
-              date={item.date}
-              info={item.info}
-              tagId={item.id}
-            />
-          ))}
+        {data.map(item => (
+          <Logs
+            key={`${item.tid_hex}-${item.first_seen}`}
+            auth={item.auth}
+            date={item.first_seen}
+            epcHex={item.epc_hex}
+            tidHex={item.tid_hex}
+          />
+        ))}
         </ScrollView>
       )}
 

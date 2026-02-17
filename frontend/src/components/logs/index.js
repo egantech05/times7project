@@ -5,13 +5,13 @@ import AuthStatus from "../authStatus";
 import { formatDateTime } from "../../../utils/formatDateTime";
 
 
-export default function Logs({ auth, date, info, tagId }) {
+export default function Logs({ auth, date, tidHex, epcHex }) {
   return (
     <View style={styles.container}>
       <View style={styles.colWrap}>
         <Text style={styles.date}>{formatDateTime(date).replace(", ", " ")}</Text>
-        <Text style={styles.info}>{info}</Text>
-        <Text style={styles.tag}>{tagId}</Text>
+        <Text style={styles.info}>{tidHex}</Text>
+        <Text style={styles.tag}>{epcHex}</Text>
       </View>
       <AuthStatus auth={auth} />
     </View>

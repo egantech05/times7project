@@ -19,20 +19,20 @@ class TagInfoCache:
         self.cache_ttl = timedelta(hours=int(cache_ttl_hours))
         self._cache: Dict[str, TagInfo] = {}
 
-    def get(self, tag_id: str) -> Optional[Tuple[bool, Optional[str]]]:
-        cur = self._cache.get(tag_id)
+    def get(self, tid_hex: str) -> Optional[Tuple[bool, Optional[str]]]:
+        cur = self._cache.get(tid_hex)
         if cur is None:
             return None
 
         now = datetime.now(timezone.utc)
         if now - cur.fetched_at > self.cache_ttl:
-            del self._cache[tag_id]
+            del self._cache[tid_hex]
             return None
 
         return (cur.auth, cur.info)
 
-    def set(self, tag_id: str, auth: bool, info: Optional[str]) -> None:
-        self._cache[tag_id] = TagInfo(
+    def set(self, tid_hex: str, auth: bool, info: Optional[str]) -> None:
+        self._cache[tid_hex] = TagInfo(
             auth=auth,
             info=info,
             fetched_at=datetime.now(timezone.utc),
@@ -43,7 +43,7 @@ def snapshot(self) -> dict:
     items = []
 
 
-    for tag_id, value in self._cache.items():
+    for tid_hex, value in self._cache.items():
        
         if isinstance(value, (tuple, list)) and len(value) >= 2:
             auth, info = value[0], value[1]
@@ -52,7 +52,7 @@ def snapshot(self) -> dict:
             auth = getattr(value, "auth", None)
             info = getattr(value, "info", None)
 
-        items.append({"id": tag_id, "auth": auth, "info": info})
+        items.append({"id": tid_hex, "auth": auth, "info": info})
 
     items.sort(key=lambda x: x.get("id") or "")
     return {"count": len(items), "items": items}

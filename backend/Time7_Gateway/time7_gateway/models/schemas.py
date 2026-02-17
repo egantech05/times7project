@@ -8,8 +8,9 @@ class ReaderEventBatch(BaseModel):
 
 #Scan-Result to be displayed on the Dashboard
 class ScanResult(BaseModel):
-    id: str
-    date: datetime
+    tidHex: str
+    epcHex: str
+    first_seen: datetime
     auth: bool
     info: Optional[str] = None
 

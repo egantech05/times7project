@@ -13,10 +13,12 @@ class ImpinjReaderClient:
         self.base_url = base_url 
         self._client = httpx.AsyncClient(auth=(username, password), timeout=None)
 
-    async def stream_events(self):
+    async def stream_events(self, on_connect=None):
         url = f"{self.base_url}/data/stream" 
         async with self._client.stream("GET", url) as r:
             r.raise_for_status()
+            if on_connect:
+                on_connect()
             async for line in r.aiter_lines():
                 if not line:
                     continue
@@ -26,26 +28,26 @@ class ImpinjReaderClient:
         await self._client.aclose()
 
 def handle_invalid_tag(
-    tag_id,
+    tidHex,
     epcHex,
     seen_at,
     active_tags,
     cache,
     info_message
 ):
-    auth_payload = "none"
     auth = False
     info = info_message
 
     active_tags.sync_seen(
-        [tag_id],
+        [tidHex],
+        epcHex={tidHex: epcHex},
         seen_at=seen_at
     )
 
-    cache.set(tag_id, auth, info)
+    cache.set(tidHex, auth, info)
 
     upsert_latest_tag(
-        tag_id=tag_id,
+        tidHex=tidHex,
         seen_at=seen_at,
         auth=auth,
         info=info
@@ -60,13 +62,20 @@ async def run_reader_stream(app):
 
     client = ImpinjReaderClient(reader_base_url, reader_user, reader_password)
 
+    
+
     active_tags = app.state.active_tags
     cache = app.state.tag_info_cache
     ias_lookup = app.state.ias_lookup
 
+    # reader status flag
+    app.state.reader_connected = False
+    def mark_connected():
+        app.state.reader_connected = True
+
     try:
         # Subscribe to data-stream
-        async for ev in client.stream_events():
+        async for ev in client.stream_events(on_connect=mark_connected):
             # Skip if not a valid tagInventoryEvent
             if ev.get("eventType") != "tagInventory":
                 continue
@@ -74,15 +83,18 @@ async def run_reader_stream(app):
             # Save required variables:
             tieDict = ev.get("tagInventoryEvent", {}) # a dict object holding the variables needed for Authentication
 
-            tag_id = tieDict.get("tidHex") # Unique tag identification number
+            tidHex = tieDict.get("tidHex") # Unique tag identification number
             epcHex = tieDict.get("epcHex") # Product information number
 
-            # Skip if no tag_id:
-            if not tag_id:
+            # Skip if no tidHex:
+            if not tidHex:
                 continue
             
             # Save timestamp as variable:
             seen_at = datetime.now(timezone.utc)
+            
+            #tid Hex from inventory event
+            tidHex_from_event = tidHex
 
             # ----- TAG AUTHENTICATION RESPONSE INGESTION -----
             tarDict = tieDict.get("tagAuthenticationResponse", {}) # a dict object holding authentication payload to be sent to IAS
@@ -90,35 +102,34 @@ async def run_reader_stream(app):
             if not tarDict:
                 #authentication failed, display tag as invalid
                 handle_invalid_tag(
-                    tag_id=tag_id,
+                    tidHex=tidHex,
                     epcHex=epcHex,
                     seen_at=seen_at,
                     active_tags=active_tags,
                     cache=cache,
-                    info_message="'tagAuthenticationResponse' not found.")
+                    info_message="tagAuthResponse")
                 continue 
 
             # Save tagAuthenticationResponse variables:
             messageHex=tarDict.get("messageHex") # Challenge that was sent to the tag, will always be included.
             responseHex=tarDict.get("responseHex") # Always will be included, but will be an empty string if failed/invalid.
-            tidHex=tarDict.get("tidHex") # May be empty, if so, use the tag_id variable from above.
+            tidHex=tarDict.get("tidHex") # May be empty, if so, use the tidHex variable from above.
+            
+            # If tidHex was not found inside tagAuthenticationResponse, use tidHex
+            if not tidHex:
+                tidHex = tidHex_from_event
 
            # Final checks:
             if responseHex == "":
                 #authentication failed, display tag as invalid
                 handle_invalid_tag(
-                    tag_id=tag_id,
+                    tidHex=tidHex,
                     epcHex=epcHex,
                     seen_at=seen_at,
                     active_tags=active_tags,
                     cache=cache,
-                    info_message="'responseHex' not found.")
+                    info_message="missing responseHex")
                 continue
-
-            # If tidHex was not found inside tagAuthenticationResponse, use tag_id
-            if not tidHex:
-                tidHex = tag_id
-            
 
             # ----- AUTHENTICATION RESPONSE VALID -----
             # Create auth_payload:
@@ -130,20 +141,24 @@ async def run_reader_stream(app):
             
             # Update active live tags
             active_tags.sync_seen(
-                [tag_id], seen_at=seen_at)
+                [tidHex],
+                epcHex={tidHex: epcHex},
+                seen_at=seen_at
+            )
             
 
             # --- SENDING TO IAS ---
-            # Check if this event's tag_id exists in the cache:
-            if cache.get(tag_id) is None: 
+            # Check if this event's tidHex exists in the cache:
+            if cache.get(tidHex) is None: 
                 
                 # Send event payload to clients/ias_services.py
                 auth, info = ias_lookup(auth_payload) 
                 # returns auth(bool): true if valid; else false
                 #         info(str) : information about the authentication request
 
-                cache.set(tag_id, auth, info)   # IAS results
-                upsert_latest_tag(tag_id=tag_id, seen_at=seen_at, auth=auth, info=info) # Sending to database
+                cache.set(tidHex, auth, info)   # IAS results
+                upsert_latest_tag(tidHex=tidHex, seen_at=seen_at, auth=auth, info=info,epcHex=epcHex) # Sending to database
 
     finally:
         await client.aclose()
+        app.state.reader_connected = False #reader status

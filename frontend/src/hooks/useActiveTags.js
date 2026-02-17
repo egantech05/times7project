@@ -1,25 +1,36 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchActiveTags } from "../services/gatewayClient";
+import { fetchActiveTags, fetchReaderStatus } from "../services/gatewayClient";
 
 export default function useActiveTags({ intervalMs = 1000 } = {}) {
   const [scans, setScans] = useState([]);
-  const [status, setStatus] = useState("connecting");
+  const [gatewayStatus, setGatewayStatus] = useState("connecting");
   const [error, setError] = useState(null);
   const timerRef = useRef(null);
+
+  const [readerConnected, setReaderConnected] = useState(false);
 
   useEffect(() => {
     let alive = true;
 
     async function tick() {
       try {
-        const rows = await fetchActiveTags();
+        const [rows, readerStatus] = await Promise.all([
+          fetchActiveTags(),
+          fetchReaderStatus(),
+        ]);
         if (!alive) return;
-        setScans(rows ?? []);
-        setStatus("live");
+
+        setScans((rows ?? []).map((r) => ({
+          ...r,
+          id: String(r.tidHex).toUpperCase(),
+        })));
+
+        setReaderConnected(Boolean(readerStatus?.connected));
+        setGatewayStatus("live");
         setError(null);
       } catch (e) {
         if (!alive) return;
-        setStatus("error");
+        setGatewayStatus("error");
         setError(e?.message || String(e));
       }
     }
@@ -33,5 +44,5 @@ export default function useActiveTags({ intervalMs = 1000 } = {}) {
     };
   }, [intervalMs]);
 
-  return { scans, status, error };
+  return { scans, gatewayStatus, error, readerConnected };
 }

@@ -4,25 +4,27 @@ import AuthStatus from "../authStatus";
 import { formatDateTime } from "../../../utils/formatDateTime";
 
 
-export default function ItemCard({ auth, date, info, id, onPress, registered }) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [styles.container, registered && styles.registered, pressed && styles.pressed]}
-      >
-        <View style={styles.top}>
-          <Text style={styles.date}>{formatDateTime(date).replace(", ", " ")}</Text>
-            <AuthStatus auth={auth} />
-        </View>
-        <View style={styles.center}>
-          <Text style={styles.info}>{info}</Text>
-        </View>
-        <View style={styles.bottom}>
-          <Text style={styles.tag}>{id}</Text>
-        </View>
-      </Pressable>
-    );
-  }
+export default function ItemCard({ auth, firstSeen, info, tidHex, epcHex, onPress, registered }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.container, registered && styles.registered, pressed && styles.pressed]}>
+      <View style={styles.top}>
+        <Text style={styles.date}>{formatDateTime(firstSeen).replace(", ", " ")}</Text>
+        <AuthStatus auth={auth} />
+        {!auth && info ? (
+          <Text style={styles.invalidInfo}>{info}</Text>
+        ) : null}
+      </View>
+      <View style={styles.center}>
+        <Text style={styles.info}>{epcHex}</Text>
+
+      </View>
+      <View style={styles.bottom}>
+        <Text style={styles.tag}>{tidHex}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 
 const styles = StyleSheet.create({
   container: {
@@ -66,6 +68,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,          
     flexWrap: "wrap",      
     maxWidth: "100%",
+    marginTop:8,
   },
 
 
@@ -83,6 +86,13 @@ const styles = StyleSheet.create({
 
   registered: {
     backgroundColor: "white",
+  },
+
+  invalidInfo: {
+    color: "#E25555",
+    fontSize: 11,
+    textAlign: "center",
+    fontWeight:"bold",
   },
   
 });
