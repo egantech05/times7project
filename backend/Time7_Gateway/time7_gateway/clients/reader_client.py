@@ -14,11 +14,14 @@ class ImpinjReaderClient:
         self._client = httpx.AsyncClient(auth=(username, password), timeout=None)
 
     async def stream_events(self, on_connect=None):
+    #async def stream_events(self):
         url = f"{self.base_url}/data/stream" 
         async with self._client.stream("GET", url) as r:
             r.raise_for_status()
+            
             if on_connect:
-                on_connect()
+               on_connect()
+
             async for line in r.aiter_lines():
                 if not line:
                     continue
@@ -50,7 +53,8 @@ def handle_invalid_tag(
         tidHex=tidHex,
         seen_at=seen_at,
         auth=auth,
-        info=info
+        info=info,
+        epcHex=epcHex,
     )
                 
 
@@ -67,17 +71,23 @@ async def run_reader_stream(app):
     active_tags = app.state.active_tags
     cache = app.state.tag_info_cache
     ias_lookup = app.state.ias_lookup
-
+    
     # reader status flag
     app.state.reader_connected = False
     def mark_connected():
         app.state.reader_connected = True
+     
+      
 
     try:
+        
         # Subscribe to data-stream
         async for ev in client.stream_events(on_connect=mark_connected):
+        #async for ev in client.stream_events():
             # Skip if not a valid tagInventoryEvent
+            
             if ev.get("eventType") != "tagInventory":
+                
                 continue
 
             # Save required variables:
@@ -85,6 +95,8 @@ async def run_reader_stream(app):
 
             tidHex = tieDict.get("tidHex") # Unique tag identification number
             epcHex = tieDict.get("epcHex") # Product information number
+
+
 
             # Skip if no tidHex:
             if not tidHex:
@@ -95,14 +107,14 @@ async def run_reader_stream(app):
             
             #tid Hex from inventory event
             tidHex_from_event = tidHex
-
+            
             # ----- TAG AUTHENTICATION RESPONSE INGESTION -----
             tarDict = tieDict.get("tagAuthenticationResponse", {}) # a dict object holding authentication payload to be sent to IAS
             
             if not tarDict:
                 #authentication failed, display tag as invalid
                 handle_invalid_tag(
-                    tidHex=tidHex,
+                    tidHex=tidHex_from_event,
                     epcHex=epcHex,
                     seen_at=seen_at,
                     active_tags=active_tags,
