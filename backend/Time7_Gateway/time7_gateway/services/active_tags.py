@@ -8,7 +8,9 @@ class ActiveTag:
     tidHex: str
     first_seen: datetime
     last_seen: datetime
-    epcHex: str
+    epcHex: Optional[str] = None
+    messageHex: Optional[str] = None
+    responseHex: Optional[str] = None
 
 
 def _utc(dt: datetime) -> datetime:
@@ -18,6 +20,7 @@ def _utc(dt: datetime) -> datetime:
 
 
 class ActiveTags:
+
     def __init__(self, remove_grace_seconds: float) -> None:
         self._tags: Dict[str, ActiveTag] = {}
         self._grace = timedelta(seconds=float(remove_grace_seconds))
@@ -25,56 +28,77 @@ class ActiveTags:
     def sync_seen(
         self,
         tidHex: Iterable[str],
-        epcHex: Dict[str, str],
+        epcHex: Optional[Dict[str, str]] = None,
+        messageHex: Optional[Dict[str, str]] = None,
+        responseHex: Optional[Dict[str, str]] = None,
         seen_at: Optional[datetime] = None,
     ) -> Set[str]:
 
         now = _utc(seen_at) if seen_at else datetime.now(timezone.utc)
-        seen_now = {str(t) for t in (tidHex or [])}
+        seen_now: Set[str] = {str(t) for t in (tidHex or [])}
 
         new_ids: Set[str] = set()
 
-        # Add new tags, refresh last_seen for existing tags that appear again
-        for tidHex in seen_now:
-            epcHex = epcHex.get(tidHex) if epcHex else None
-            cur = self._tags.get(tidHex)
+        for tid in seen_now:
+            epc_val = epcHex.get(tid) if epcHex else None
+            msg_val = messageHex.get(tid) if messageHex else None
+            resp_val = responseHex.get(tid) if responseHex else None
+
+            cur = self._tags.get(tid)
             if cur is None:
-                self._tags[tidHex] = ActiveTag(
-                    tidHex=tidHex,
+                self._tags[tid] = ActiveTag(
+                    tidHex=tid,
                     first_seen=now,
                     last_seen=now,
-                    epcHex=epcHex,
+                    epcHex=epc_val,
+                    messageHex=msg_val,
+                    responseHex=resp_val,
                 )
-                new_ids.add(tidHex)
+                new_ids.add(tid)
             else:
-                # Only refresh last_seen 
+             
                 cur.last_seen = now
-                cur.epcHex = epcHex
+                if epcHex is not None:
+                    cur.epcHex = epc_val
+                if messageHex is not None:
+                    cur.messageHex = msg_val
+                if responseHex is not None:
+                    cur.responseHex = resp_val
 
-        # Remove tags that haven't been seen in the last 2 seconds
-        cutoff = now - self._grace
-        for tidHex in list(self._tags.keys()):
-            if self._tags[tidHex].last_seen < cutoff:
-                del self._tags[tidHex]
 
+        self.remove_inactive(now=now)
         return new_ids
 
+    def remove_inactive(self, now: Optional[datetime] = None) -> int:
+        now_utc = _utc(now) if now else datetime.now(timezone.utc)
+        cutoff = now_utc - self._grace
+
+        removed = 0
+        for tid in list(self._tags.keys()):
+            if self._tags[tid].last_seen < cutoff:
+                del self._tags[tid]
+                removed += 1
+        return removed
+
     def get_active(self) -> List[ActiveTag]:
+        self.remove_inactive()
         return sorted(self._tags.values(), key=lambda x: x.first_seen, reverse=True)
 
     def get_active_ids(self) -> List[str]:
+        self.remove_inactive()
         return list(self._tags.keys())
-    
-    #for debugging
+
     def snapshot(self) -> dict:
+        self.remove_inactive()
         items = [
             {
                 "tidHex": t.tidHex,
                 "first_seen": t.first_seen,
                 "last_seen": t.last_seen,
                 "epcHex": t.epcHex,
+                "messageHex": t.messageHex,
+                "responseHex": t.responseHex,
             }
             for t in self.get_active()
         ]
-
         return {"count": len(items), "items": items}
