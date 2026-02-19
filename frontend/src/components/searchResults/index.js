@@ -23,10 +23,6 @@ export function SearchResults({ product, photoUrl }) {
           <Text style={styles.label}>epc</Text>
           <Text style={styles.valueBold}>{product?.epc ?? "-"}</Text>
         </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>tid</Text>
-          <Text style={styles.valueBold}>{product?.tid ?? "-"}</Text>
-        </View>
 
         <View style={styles.info}>
               <Text style={styles.value}>{product?.description ?? "-"}</Text>

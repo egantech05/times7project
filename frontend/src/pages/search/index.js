@@ -38,33 +38,12 @@ export default function SearchPage() {
     try {
       let row = null;
 
-      // 1) exact by tid (as-is)
-      {
-        const { data, error: e } = await supabase
-          .from("product_info")
-          .select("tid, epc, description, origin, produced_on")
-          .eq("tid", q)
-          .maybeSingle();
-        if (e) throw e;
-        row = data ?? null;
-      }
-
-      // 1.1) exact by tid (uppercase fallback, still exact match)
-      if (!row && qUpper !== q) {
-        const { data, error: e } = await supabase
-          .from("product_info")
-          .select("tid, epc, description, origin, produced_on")
-          .eq("tid", qUpper)
-          .maybeSingle();
-        if (e) throw e;
-        row = data ?? null;
-      }
 
       // 2) exact by epc (as-is)
       if (!row) {
         const { data, error: e } = await supabase
           .from("product_info")
-          .select("tid, epc, description, origin, produced_on")
+          .select("epc, description, origin, produced_on")
           .eq("epc", q)
           .maybeSingle();
         if (e) throw e;
@@ -84,11 +63,11 @@ export default function SearchPage() {
 
       setProduct(row);
 
-      if (row?.tid) {
+      if (row?.epc) {
         const { data: photos, error: photoError } = await supabase
           .from("product_photo")
           .select("photo_url, created_at")
-          .eq("tid", row.tid)
+          .eq("epc", row.epc)
           .order("created_at", { ascending: false })
           .limit(1);
 
