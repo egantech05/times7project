@@ -15,7 +15,7 @@ def mock_ias_lookup(auth_payload: AuthPayload) -> Tuple[bool, str]:
     expected_response = generate_response(tidHex, messageHex)
 
     if expected_response == responseHex:
-        return True, "IAS: Tag is Valid."
+        return True, "Authentication Passed"
     else:
-        return False, "invalid responseHex"
+        return False, "Authentication Failed"
     

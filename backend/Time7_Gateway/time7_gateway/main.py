@@ -23,6 +23,15 @@ from time7_gateway.simulators.reader_streamer import router as reader_stream_rou
 load_dotenv()
 
 
+async def _active_tags_cleanup(app: FastAPI, interval_seconds: float = 1.0) -> None:
+    try:
+        while True:
+            app.state.active_tags.remove_inactive()
+            await asyncio.sleep(interval_seconds)
+    except asyncio.CancelledError:
+        pass
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="Time7 Gateway")
 
@@ -35,7 +44,7 @@ def create_app() -> FastAPI:
     )
 
     # Shared in-memory state
-    app.state.active_tags = ActiveTags(remove_grace_seconds=3.0)
+    app.state.active_tags = ActiveTags(remove_grace_seconds=5.0)
     app.state.tag_info_cache = TagInfoCache(cache_ttl_hours=24)
     app.state.reader_connected = False #for reader status
 
@@ -59,7 +68,15 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def _start_reader_stream():
         asyncio.create_task(run_reader_stream(app))
+        app.state.active_tags_cleanup_task = asyncio.create_task(_active_tags_cleanup(app))
    
+
+    @app.on_event("shutdown")
+    async def _stop_background_tasks():
+        task = getattr(app.state, "active_tags_cleanup_task", None)
+        if task:
+            task.cancel()
+
 
     return app
 
