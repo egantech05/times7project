@@ -13,7 +13,7 @@ export default function SearchBar({ value = "", onChangeText, onSearch }){
             <View style={styles.searchRow}>
                 <TextInput 
                     style={[styles.input, {outlineStyle: 'none'}]}
-                    placeholder="Enter epc or tid"
+                    placeholder="Enter epc number"
                     placeholderTextColor="grey"
 
                     value={value}

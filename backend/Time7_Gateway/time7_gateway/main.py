@@ -70,6 +70,11 @@ def create_app() -> FastAPI:
         asyncio.create_task(run_reader_stream(app))
         app.state.active_tags_cleanup_task = asyncio.create_task(_active_tags_cleanup(app))
    
+    #@app.on_event("startup")
+    #async def _start_reader_stream():
+    # Only start reader streamer inside API if explicitly enabled
+    #    if os.getenv("START_READER_STREAM", "0") == "1":
+    #        app.state.reader_task = asyncio.create_task(run_reader_stream(app))
 
     @app.on_event("shutdown")
     async def _stop_background_tasks():

@@ -54,7 +54,7 @@ export default function SearchPage() {
       if (!row && qUpper !== q) {
         const { data, error: e } = await supabase
           .from("product_info")
-          .select("tid, epc, description, origin, produced_on")
+          .select(" epc, description, origin, produced_on")
           .eq("epc", qUpper)
           .maybeSingle();
         if (e) throw e;

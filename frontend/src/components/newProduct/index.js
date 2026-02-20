@@ -111,10 +111,6 @@ const handleRegister = async () => {
               <Text style={styles.label}> epc </Text>
               <Text style={styles.valueBold}>{item?.epcHex}</Text>
           </View>
-          <View style={styles.infoRow}>
-              <Text style={styles.label}> tid </Text>
-              <Text style={styles.valueBold}>{item?.tidHex}</Text>
-          </View>
 
           <View style={styles.info}>
               <TextInput
