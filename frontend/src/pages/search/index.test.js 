@@ -1,0 +1,204 @@
+// frontend/src/pages/search/index.test.js
+
+import React from "react";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import SearchPage from "./index";
+
+/**
+ * 1 Mock SearchBar:
+ * - A button to trigger onSearch
+ * - A button to simulate user typing
+ */
+jest.mock("../../components/searchBar", () => {
+  const React = require("react");
+  const { View, Text, Pressable } = require("react-native");
+
+  return function MockSearchBar(props) {
+    return (
+      <View>
+        <Text testID="query">{props.value}</Text>
+
+        <Pressable
+          testID="search-btn"
+          onPress={() => props.onSearch(props.value)}
+        >
+          <Text>Search</Text>
+        </Pressable>
+
+        <Pressable testID="type-abc" onPress={() => props.onChangeText("abc")}>
+          <Text>Type abc</Text>
+        </Pressable>
+      </View>
+    );
+  };
+});
+
+/**
+ * 2 Mock SearchResults:
+ * Render product as JSON so assertions are easy.
+ */
+jest.mock("../../components/searchResults", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  return {
+    SearchResults: ({ product }) => (
+      <Text testID="product">
+        {product ? JSON.stringify(product) : "NO_PRODUCT"}
+      </Text>
+    ),
+  };
+});
+
+/**
+ * 3 Mock chained supabase calls:
+ * supabase.from().select().eq().maybeSingle()
+ */
+const maybeSingle = jest.fn();
+const eq = jest.fn(() => ({ maybeSingle }));
+const select = jest.fn(() => ({ eq }));
+const from = jest.fn(() => ({ select }));
+
+jest.mock("../../data/supabase", () => ({
+  supabase: { from },
+}));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+/**
+ * Helper:
+ * Configure maybeSingle to return results in sequence.
+ * results: [{ data, error }, { data, error }, ...]
+ */
+function mockMaybeSingleSequence(results) {
+  results.forEach((r) => {
+    maybeSingle.mockImplementationOnce(async () => r);
+  });
+}
+
+describe("SearchPage", () => {
+  test("empty input clears state and does not query supabase", async () => {
+    const screen = render(<SearchPage />);
+
+    // Default query = ""
+    fireEvent.press(screen.getByTestId("search-btn"));
+
+    // Supabase should not be called
+    expect(from).not.toHaveBeenCalled();
+
+    // "Item not found" should not be shown
+    expect(screen.queryByText("Item not found")).toBeNull();
+
+    // No product passed to SearchResults
+    expect(screen.getByTestId("product").props.children).toBe("NO_PRODUCT");
+  });
+
+  test("finds by tid (as-is) on first query", async () => {
+    const screen = render(<SearchPage />);
+
+    // Simulate typing "abc"
+    fireEvent.press(screen.getByTestId("type-abc"));
+
+    // First maybeSingle call returns data (tid hit)
+    mockMaybeSingleSequence([
+      {
+        data: {
+          tid: "abc",
+          epc: "E1",
+          description: "D",
+          origin: "NZ",
+          produced_on: "2026-01-01",
+        },
+        error: null,
+      },
+    ]);
+
+    fireEvent.press(screen.getByTestId("search-btn"));
+
+    await waitFor(() => {
+      expect(from).toHaveBeenCalledWith("product_info");
+      expect(select).toHaveBeenCalledWith(
+        "tid, epc, description, origin, produced_on"
+      );
+      expect(eq).toHaveBeenCalledWith("tid", "abc");
+    });
+
+    expect(screen.getByTestId("product").props.children).toContain('"tid":"abc"');
+    expect(screen.queryByText("Item not found")).toBeNull();
+  });
+
+  test("tid miss -> uppercase tid hit", async () => {
+    const screen = render(<SearchPage />);
+    fireEvent.press(screen.getByTestId("type-abc"));
+
+    mockMaybeSingleSequence([
+      { data: null, error: null }, // tid abc miss
+      { data: { tid: "ABC", epc: "E2" }, error: null }, // tid ABC hit
+    ]);
+
+    fireEvent.press(screen.getByTestId("search-btn"));
+
+    await waitFor(() => {
+      expect(eq).toHaveBeenNthCalledWith(1, "tid", "abc");
+      expect(eq).toHaveBeenNthCalledWith(2, "tid", "ABC");
+    });
+
+    expect(screen.getByTestId("product").props.children).toContain('"tid":"ABC"');
+  });
+
+  test("tid miss + uppercase miss -> epc hit", async () => {
+    const screen = render(<SearchPage />);
+    fireEvent.press(screen.getByTestId("type-abc"));
+
+    mockMaybeSingleSequence([
+      { data: null, error: null }, // tid abc
+      { data: null, error: null }, // tid ABC
+      { data: { tid: "T1", epc: "abc" }, error: null }, // epc abc hit
+    ]);
+
+    fireEvent.press(screen.getByTestId("search-btn"));
+
+    await waitFor(() => {
+      expect(eq).toHaveBeenNthCalledWith(1, "tid", "abc");
+      expect(eq).toHaveBeenNthCalledWith(2, "tid", "ABC");
+      expect(eq).toHaveBeenNthCalledWith(3, "epc", "abc");
+    });
+
+    expect(screen.getByTestId("product").props.children).toContain('"epc":"abc"');
+  });
+
+  test("shows 'Item not found' when all queries return null", async () => {
+    const screen = render(<SearchPage />);
+    fireEvent.press(screen.getByTestId("type-abc"));
+
+    mockMaybeSingleSequence([
+      { data: null, error: null }, // tid abc
+      { data: null, error: null }, // tid ABC
+      { data: null, error: null }, // epc abc
+      { data: null, error: null }, // epc ABC
+    ]);
+
+    fireEvent.press(screen.getByTestId("search-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Item not found")).toBeTruthy();
+    });
+
+    expect(screen.getByTestId("product").props.children).toBe("NO_PRODUCT");
+  });
+
+  test("shows error message when supabase returns an error", async () => {
+    const screen = render(<SearchPage />);
+    fireEvent.press(screen.getByTestId("type-abc"));
+
+    mockMaybeSingleSequence([{ data: null, error: { message: "DB down" } }]);
+
+    fireEvent.press(screen.getByTestId("search-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByText("DB down")).toBeTruthy();
+    });
+  });
+}); 
