@@ -15,7 +15,7 @@ def clear_screen() -> None:
 def main() -> None:
     while True:
         try:
-            r = requests.get(URL, timeout=2)
+            r = requests.get(URL, timeout=60)
             r.raise_for_status()
             data = r.json()
 

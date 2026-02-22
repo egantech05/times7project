@@ -119,7 +119,7 @@ async def run_reader_stream(app):
                     seen_at=seen_at,
                     active_tags=active_tags,
                     cache=cache,
-                    info_message="tagAuthResponse")
+                    info_message="Authentication Disabled")
                 continue 
 
             # Save tagAuthenticationResponse variables:
@@ -133,14 +133,14 @@ async def run_reader_stream(app):
 
            # Final checks:
             if responseHex == "":
-                #authentication failed, display tag as invalid
+                #unable to authenticate due to missing responseHex. marked as incompatible tag
                 handle_invalid_tag(
                     tidHex=tidHex,
                     epcHex=epcHex,
                     seen_at=seen_at,
                     active_tags=active_tags,
                     cache=cache,
-                    info_message="missing responseHex")
+                    info_message="Unsupported Tag")
                 continue
 
             # ----- AUTHENTICATION RESPONSE VALID -----

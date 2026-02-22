@@ -16,22 +16,25 @@ export default function Dashboard() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const [registeredTids, setRegisteredTids] = useState([]);
+  const [registeredEpcs, setRegisteredEpcs] = useState([]);
   const [selectedRegistered, setSelectedRegistered] = useState(false);
+  
 
-  const refreshRegisteredTids = async () => {
-    const { data, error } = await supabase.from("product_info").select("tid");
+  const refreshRegisteredEpcs = async () => {
+    const { data, error } = await supabase.from("product_info").select("epc");
     if (error) {
       console.log("Supabase error", error);
       return;
     }
-    setRegisteredTids((data ?? []).map((r) => String(r.tid)));
+    setRegisteredEpcs((data ?? []).map((r) => String(r.epc)));
   };
+
+
 
   const gatewayLive = gatewayStatus === "live";
 
   useEffect(() => {
-    refreshRegisteredTids();
+    refreshRegisteredEpcs();
   }, []);
 
   return (
@@ -71,10 +74,10 @@ export default function Dashboard() {
               info={item.info}
               tidHex={item.tidHex}
               epcHex={item.epcHex}
-              registered={registeredTids.includes(String(item.tidHex))}
+              registered={registeredEpcs.includes(String(item.epcHex))}
               onPress={() => {
                 if (!item.auth) return;
-                const isRegistered = registeredTids.includes(String(item.tidHex));
+                const isRegistered = registeredEpcs.includes(String(item.epcHex));
                 setSelectedRegistered(isRegistered);
                 setSelectedItem(item);
                 setIsOpen(true);
@@ -91,7 +94,7 @@ export default function Dashboard() {
           <NewProduct
             item={selectedItem}
             onClose={() => setIsOpen(false)}
-            onRegistered={() => refreshRegisteredTids()}
+            onRegistered={() => refreshRegisteredEpcs()}
           />
         )}
       </Modal>

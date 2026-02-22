@@ -66,7 +66,6 @@ class ActiveTags:
                     cur.responseHex = resp_val
 
 
-        self.remove_inactive(now=now)
         return new_ids
 
     def remove_inactive(self, now: Optional[datetime] = None) -> int:

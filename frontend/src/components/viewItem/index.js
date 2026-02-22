@@ -23,7 +23,8 @@ export function ViewItem({ item, onClose }) {
 
   useEffect(() => {
     let alive = true;
-    if (!item?.id) {
+
+    if (!item?.epcHex) {
       setLoading(false);
       return;
     }
@@ -32,12 +33,12 @@ export function ViewItem({ item, onClose }) {
       setLoading(true);
       setLoadError(null);
 
-      const tid = String(item?.tidHex);
+      const epc = String(item?.epcHex);
 
       const { data: productRow, error: productError } = await supabase
         .from("product_info")
-        .select("tid, epc, description, origin, produced_on")
-        .eq("tid", tid)
+        .select("epc, description, origin, produced_on")
+        .eq("epc", epc)
         .maybeSingle();
 
       if (productError) throw productError;
@@ -45,9 +46,10 @@ export function ViewItem({ item, onClose }) {
       const { data: photos, error: photoError } = await supabase
         .from("product_photo")
         .select("photo_url, created_at")
-        .eq("tid", tid)
+        .eq("epc", epc)
         .order("created_at", { ascending: false })
         .limit(1);
+
 
       if (photoError) throw photoError;
 
@@ -65,7 +67,7 @@ export function ViewItem({ item, onClose }) {
     return () => {
       alive = false;
     };
-  }, [item?.id]);
+  }, [item?.epcHex]);
 
   useEffect(() => {
     if (!product) return;
@@ -78,7 +80,7 @@ export function ViewItem({ item, onClose }) {
     if (!item?.id) return;
     setSaving(true);
     try {
-      const tid = String(item.id);
+      const epc = String(item.epcHex);
 
       const { error: infoError } = await supabase
         .from("product_info")
@@ -87,12 +89,13 @@ export function ViewItem({ item, onClose }) {
           origin: draftOrigin || null,
           produced_on: draftProducedOn || null,
         })
-        .eq("tid", tid);
+        .eq("epc", epc);
+
 
       if (infoError) throw infoError;
 
       if (imageUri) {
-        const path = `${tid}/${Date.now()}.jpg`;
+        const path = `${epc}/${Date.now()}.jpg`;
         const blob = await (await fetch(imageUri)).blob();
 
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -109,7 +112,8 @@ export function ViewItem({ item, onClose }) {
 
         const { error: photoError } = await supabase
           .from("product_photo")
-          .insert({ tid, photo_url: newUrl });
+          .insert({ epc, photo_url: newUrl });
+
 
         if (photoError) throw photoError;
 
@@ -188,10 +192,6 @@ export function ViewItem({ item, onClose }) {
         <View style={styles.infoRow}>
           <Text style={styles.label}>epc</Text>
           <Text style={styles.valueBold}>{product?.epc ?? item?.epcHex ?? "-"}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>tid</Text>
-          <Text style={styles.valueBold}>{product?.tid ?? item?.tidHex ?? "-"}</Text>
         </View>
 
         {loading ? (
